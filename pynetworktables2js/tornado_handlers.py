@@ -1,12 +1,14 @@
+import cbor
+import logging
 from os.path import abspath, dirname, join
 
 from tornado.ioloop import IOLoop
-from tornado.web import StaticFileHandler
+from tornado.web import StaticFileHandler, RequestHandler
 from tornado.websocket import WebSocketHandler, WebSocketClosedError
 
 from .nt_serial import NTSerial
 
-import logging
+from networktables import NetworkTables
 
 logger = logging.getLogger("net2js")
 
@@ -51,6 +53,20 @@ class NetworkTablesWebSocket(WebSocketHandler):
             self.ntserial.close()
 
 
+class GenerateNetworkTablesBackup(RequestHandler):
+    def get(self):
+        file_name = 'nt-backup.cbor'
+        entries = NetworkTables.getEntries("/Preferences")
+        preferences = {}
+        for entry in entries:
+            preferences[entry.key] = entry.value
+        dumps = cbor.dumps(preferences)
+        self.write(dumps)
+        self.set_header('Content-Type', 'application/octet-stream')
+        self.set_header('Content-Disposition', 'attachment; filename=' + file_name)
+        self.set_header('Content-Length', len(dumps))
+
+
 class NonCachingStaticFileHandler(StaticFileHandler):
     """
         This static file handler disables caching, to allow for easy
@@ -92,5 +108,6 @@ def get_handlers():
 
     return [
         ("/networktables/ws", NetworkTablesWebSocket),
+        ("/networktables/backup", GenerateNetworkTablesBackup),
         ("/networktables/(.*)", NonCachingStaticFileHandler, js_path_opts),
     ]
