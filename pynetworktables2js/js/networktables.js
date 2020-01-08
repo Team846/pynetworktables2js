@@ -334,5 +334,3 @@ const NetworkTables = new function () {
 	
 	createSocket();
 };
-
-
