@@ -1,12 +1,14 @@
 from os.path import abspath, dirname, join
 
 from tornado.ioloop import IOLoop
-from tornado.web import StaticFileHandler
+from tornado.web import StaticFileHandler, RequestHandler
 from tornado.websocket import WebSocketHandler, WebSocketClosedError
+from networktables import NetworkTables
 
 from .nt_serial import NTSerial
 
 import logging
+import json
 
 logger = logging.getLogger("net2js")
 
@@ -51,6 +53,11 @@ class NetworkTablesWebSocket(WebSocketHandler):
             self.ntserial.close()
 
 
+class GetValueFromRobot(RequestHandler):
+    def get(self):
+        # print(NetworkTables.getEntry(self.get_argument("key")))
+        self.write(json.dumps(NetworkTables.getEntry(self.get_argument("key")).get()))
+
 class NonCachingStaticFileHandler(StaticFileHandler):
     """
         This static file handler disables caching, to allow for easy
@@ -92,5 +99,6 @@ def get_handlers():
 
     return [
         ("/networktables/ws", NetworkTablesWebSocket),
+        ("/networktables/get-value", GetValueFromRobot),
         ("/networktables/(.*)", NonCachingStaticFileHandler, js_path_opts),
     ]
