@@ -58,6 +58,7 @@ class GetValueFromRobot(RequestHandler):
         value = NetworkTables.getEntry(self.get_argument("key")).get()
         self.write(cbor2.dumps(value))
 
+
 class NonCachingStaticFileHandler(StaticFileHandler):
     """
         This static file handler disables caching, to allow for easy

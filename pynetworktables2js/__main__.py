@@ -52,7 +52,6 @@ def init_networktables(options):
 
 
 def main():
-
     # Setup options here
     parser = OptionParser()
 
