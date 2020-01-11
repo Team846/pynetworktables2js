@@ -8,7 +8,7 @@ from networktables import NetworkTables
 from .nt_serial import NTSerial
 
 import logging
-import json
+import cbor2
 
 logger = logging.getLogger("net2js")
 
@@ -55,8 +55,8 @@ class NetworkTablesWebSocket(WebSocketHandler):
 
 class GetValueFromRobot(RequestHandler):
     def get(self):
-        # print(NetworkTables.getEntry(self.get_argument("key")))
-        self.write(json.dumps(NetworkTables.getEntry(self.get_argument("key")).get()))
+        value = NetworkTables.getEntry(self.get_argument("key")).get()
+        self.write(cbor2.dumps(value))
 
 class NonCachingStaticFileHandler(StaticFileHandler):
     """
