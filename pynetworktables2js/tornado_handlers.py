@@ -52,6 +52,19 @@ class NetworkTablesWebSocket(WebSocketHandler):
         if self.ntserial is not None:
             self.ntserial.close()
 
+class GenerateNetworkTablesBackup(RequestHandler):
+    def get(self):
+        file_name = 'nt-backup.cbor'
+        entries = NetworkTables.getEntries("/Preferences")
+        preferences = {}
+        for entry in entries:
+            preferences[entry.key] = entry.value
+        dumps = cbor2.dumps(preferences)
+        self.write(dumps)
+        self.set_header('Content-Type', 'application/octet-stream')
+        self.set_header('Content-Disposition', 'attachment; filename=' + file_name)
+        self.set_header('Content-Length', len(dumps))
+
 
 class GetValueFromRobot(RequestHandler):
     def get(self):
@@ -100,6 +113,7 @@ def get_handlers():
 
     return [
         ("/networktables/ws", NetworkTablesWebSocket),
+        ("/networktables/backup", GenerateNetworkTablesBackup),
         ("/networktables/get-value", GetValueFromRobot),
         ("/networktables/(.*)", NonCachingStaticFileHandler, js_path_opts),
     ]
